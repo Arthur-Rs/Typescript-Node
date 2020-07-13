@@ -1,29 +1,30 @@
 import { Router } from 'express';
 
+// ==> Repositories
+import AppointmentRepositories from '../repositories/appointment.repo';
+
+// ==> Services
+import CreateAppointmentService from '../services/createAppointment.service';
+
 const routes = Router();
-
-interface AppointmentData {
-  name: string;
-  date: Date;
-}
-
-const appointments: AppointmentData[] = [];
+const AppointmentRepository = new AppointmentRepositories();
 
 routes.get('/', (req, res) => {
-  res.json({ appointments });
+  res.json({ appointments: AppointmentRepository.get() });
 });
 
 routes.post('/', (req, res) => {
-  const { name, date } = req.body;
+  try {
+    const CreateAppointment = new CreateAppointmentService(
+      AppointmentRepository,
+    );
 
-  const data = {
-    name,
-    date,
-  };
+    CreateAppointment.execute(req.body);
 
-  appointments.push(data);
-
-  return res.json({ message: 'Appointment created with success' });
+    return res.json({ message: 'Appointment created with success' });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
 });
 
 export default routes;
